@@ -21,6 +21,8 @@ module Blather
 
       # Fire it back to the server if the message had either plain or XHTML content.
       client.write stanza unless stanza.body.empty? and stanza.xhtml.empty?
+
+      true # We were successful, right?
     end
 
     # Understand a given message, either sent as a prefixed public chat message or a private message.
@@ -28,15 +30,11 @@ module Blather
       regex = /#{Regexp.quote(nickname)}[:, ]? #{cmd.to_s}/
 
       message :groupchat?, :body => regex do |message|
-        parameters = message.body.match(regex).to_a.drop(1)
-        yield message, parameters
-        true
+        yield message, message.body.match(regex).to_a.drop(1)
       end
 
       message :chat?, :body => cmd do |message|
-        parameters = message.body.match(cmd).to_a.drop(1)
-        yield message, parameters
-        true
+        yield message, message.body.match(cmd).to_a.drop(1)
       end
     end
   end
