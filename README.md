@@ -1,3 +1,35 @@
-BlatherBot
-==========
-A simple bot utilizing the Blather DSL. To create plugins, create a file in the `plugins` folder that reopens `Blather::DSL` and define your plugin.
+Drivel
+======
+An alternative DSL utilizing the excellent XMPP library, Blather, for creating interactive XMPP bots.
+
+Example
+-------
+
+  require 'drivel'
+
+  include Drivel::DSL
+
+  setup 'DrivelBot', 'user@example.com', 'secretpassword'
+
+  connected do
+    status :available, 'At your service.'
+    attend 'development', 'conference.example.com'
+  end
+
+  disconnected do
+    status :offline, 'Going away.' and shutdown
+  end
+
+  command 'ping' do
+    description 'Respond with a pong message to test.'
+    action do |message, options|
+      respond_to message, 'pong'
+    end
+  end
+
+  run!
+
+Feedback
+--------
+Patches welcome.
+
