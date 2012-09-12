@@ -5,29 +5,31 @@ An alternative DSL utilizing the excellent XMPP library, Blather, for creating i
 Example
 -------
 
-  require 'drivel'
+    #!/usr/bin/env ruby
 
-  include Drivel::DSL
+    require 'drivel'
 
-  setup 'DrivelBot', 'user@example.com', 'secretpassword'
+    include Drivel::DSL
 
-  connected do
-    status :available, 'At your service.'
-    attend 'development', 'conference.example.com'
-  end
+    setup 'DrivelBot', 'user@example.com', 'secretpassword'
 
-  disconnected do
-    status :offline, 'Going away.' and shutdown
-  end
-
-  command 'ping' do
-    description 'Respond with a pong message to test.'
-    action do |message, options|
-      respond_to message, 'pong'
+    connected do
+      status :available, 'At your service.'
+      attend 'development', 'conference.example.com'
     end
-  end
 
-  run!
+    disconnected do
+      status :offline, 'Going away.' and shutdown
+    end
+
+    command 'ping' do
+      description 'Respond with a pong message to test.'
+      action do |message, options|
+        respond_to message, 'pong'
+      end
+    end
+
+    run!
 
 Feedback
 --------
