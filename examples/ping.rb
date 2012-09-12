@@ -8,7 +8,7 @@ setup 'DrivelBot', 'user@example.com', 'secretpassword'
 
 connected do
   status :available, 'At your service.'
-  join 'development', 'conference.example.com'
+  join 'room', 'conference.example.com'
 end
 
 disconnected do
