@@ -34,44 +34,59 @@ module Drivel
   end
 
   module DSL
+    # Give direct access to the Blather client.
     def client
       @client ||= Blather::Client.new
     end
 
+    # Setup this bot, capturing it's nickname and passing the rest to Blather.
     def setup(nickname, *arguments)
       @nickname = nickname
       client.setup(*arguments)
     end
 
-    def run!
-      $stdin.reopen "/dev/null"
-
-      [:INT, :TERM].each do |signal|
-        trap(sig) { EM.stop }
-      end
-
-      EM.run do
-        client.run
-      end
+    # Don't process this message or send it to another handler.
+    def halt
+      throw :halt
     end
 
+    # Skip processing this message and send it to the next handler.
+    def pass
+      throw :pass
+    end
+
+    # Set the status of this bot, including a custom away message.
     def status(state, message = nil)
       state = nil if state == :offline
-      client.state = state, message
+      client.status = state, message
     end
 
+    # Shutdown the bot immediately.
     def shutdown
       client.close
     end
 
+    # Before a message has been processed, evaluate this block passing the message to it.
+    def before(handler = nil, *guards, &block)
+      client.register_filter(:before, handler, *guards, &block)
+    end
+
+    # After a message has been processed, evaluate this block passing the message to it.
+    def after(handler = nil, *guards, &block)
+      client.register_filter(:after, handler, *guards, &block)
+    end
+
+    # When connected, evaluate this block.
     def connected(&block)
       handle(:ready, &block)
     end
 
+    # When disconnected, evaluate this block.
     def disconnected(&block)
       handle(:disconnected, &block)
     end
 
+    # Signal to the server to join a given conference room.
     def attend(room, server = nil)
       write_stanza(Blather::Stanza::Presence::MUC) do |stanza|
         conference = room + (server ? '' : '@' + server.to_s)
@@ -79,26 +94,29 @@ module Drivel
       end
     end
 
-    def respond_to(message, content)
+    # Contextually respond to a message, depending on the source, or send a custom message stanza.
+    def respond(message = nil, content = nil)
       write_stanza(Blather::Stanza::Message) do |stanza|
-        stanza.type = message.type
-        stanza.from = message.to
+        if message
+          stanza.type, stanza.from = message.type, message.to
 
-        case message.type
-        when :groupchat
-          stanza.to   = message.from.stripped
-          stanza.body = message.from.resource + ': ' + content
-        when :chat
-          stanza.to   = message.from
-          stanza.body = content
-        else
-          raise ArgumentError, 'Cannot respond to messages of type ' + message.type.to_s
+          case message.type
+          when :groupchat
+            stanza.to   = message.from.stripped
+            stanza.body = message.from.resource + ': ' + content
+          when :chat
+            stanza.to   = message.from
+            stanza.body = content
+          else
+            raise ArgumentError, 'Cannot respond to messages of type ' + message.type.to_s
+          end
         end
 
         yield stanza if block_given?
       end
     end
 
+    # Install a handler that captures a directed message in either direct or group chat.
     def command(pattern, *arguments, &block)
       raise 'Pattern must respond to :to_s!' unless pattern.respond_to?(:to_s)
 
@@ -128,6 +146,34 @@ module Drivel
       install_handler.call(/^#{prefix}#{description_regex}$/, ->(message) {
         respond_to(message, description_message)
       })
+    end
+
+    # Install a handler that will capture a given pattern in a message.
+    def recognize(pattern, *arguments, &block)
+      # Unimplemented.
+    end
+
+    # Enhance this DSL by adding your own methods or providing a block to evaluate in it's class context.
+    def enhance(*addons, &block)
+      class_eval(&block) if block_given?
+      include(*addons) unless addons.empty?
+    end
+
+    # Register modules (or a given block as a module) to include additional functionality
+    def register(*plugins, &block)
+      plugins << Module.new(&block) if block_given?
+      plugins.each { |plugin| include(plugin); plugin.register(self) if plugin.respond_to?(:register) }
+    end
+
+    # Run the configured bot now.
+    def run!
+      $stdin.reopen('/dev/null')
+
+      [:INT, :TERM].each do |signal|
+        trap(signal) { client.close }
+      end
+
+      EM.run { client.run }
     end
 
     private
