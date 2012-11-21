@@ -15,7 +15,7 @@ Example
 
     connected do
       status :available, 'At your service.'
-      attend 'room', 'conference.example.com'
+      attend 'room@conference.example.com'
     end
 
     disconnected do
