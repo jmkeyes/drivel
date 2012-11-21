@@ -27,15 +27,8 @@ module Drivel
     end
 
     # Provide access to regex-value pairs by overriding array access.
-    def [](variable)
-      case variable
-      when :usage # Display a usage message.
-        [ /(help|usage) #{@name}/, @pattern ]
-      when :description # Display a command description message.
-        [ /describe #{@name}/, @description ]
-      when :action # Evaluate the action block defined for this command
-        [ @regex, @action ]
-      end
+    def export
+      [ @regex, @action ]
     end
   end
 
@@ -147,34 +140,23 @@ module Drivel
       command = ::Drivel::Command.new(pattern, *arguments, &block)
 
       install_handler = ->(regex, &callback) {
-        handle(:message, :chat? , :body => regex, &callback)
+        handle(:message, :chat?, :body => regex, &callback)
         handle(:message, :groupchat?, :body => regex, &callback)
       }
 
-      # Install a handler for this command that will evaluate it's action block when called.
-      command_regex, command_action = command[:action]
-        install_handler.call /\A#{prefix}#{command_regex}\Z/ do |message|
-        matches = message.body.match(/\A#{prefix}#{command_regex}\Z/)
+      regex, action = command.export
+      install_handler.call(/\A#{prefix}#{regex}\Z/) do |message|
+        matches = message.body.match(/\A#{prefix}#{regex}\Z/)
         parameters = Hash[(matches.names.map(&:to_sym).zip(matches.captures))]
-        instance_exec(message, parameters, &command_action)
-      end
-
-      # Install a handler to send a help/usage message when called.
-      usage_regex, usage_message = command[:usage]
-        install_handler.call /\A#{prefix}#{usage_regex}\Z/ do |message|
-        respond(message, usage_message)
-      end
-
-      # Install a handler to send a descriptive message when called. TODO: Maybe roll this into help/usage later.
-      description_regex, description_message = command[:description]
-        install_handler.call /\A#{prefix}#{description_regex}\Z/ do |message|
-        respond(message, description_message)
+        instance_exec(message, parameters, &action)
       end
     end
 
     # Install a handler that will capture a given pattern in a message.
     def recognize(pattern, *arguments, &block)
-      raise 'Recognizing general messsage content is currently unimplemented.'
+      callback = ->(message) { yield message, *arguments if block_given? }
+      handle(:message, :chat?, :body => pattern, &callback)
+      handle(:message, :groupchat?, :body => pattern, &callback)
     end
 
     # Register modules (or a given block as a module) to include additional functionality
