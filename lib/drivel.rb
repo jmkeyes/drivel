@@ -142,7 +142,7 @@ module Drivel
       raise 'Pattern must respond to :to_s!' unless pattern.respond_to?(:to_s)
 
       nick   = Regexp.quote(nickname)
-      prefix = /(?:#{nick}[:,]? ?|[!$%@])/
+      prefix = /(?:#{nick}[:,] |[!$%@])/i
 
       command = ::Drivel::Command.new(pattern, *arguments, &block)
 
@@ -153,22 +153,22 @@ module Drivel
 
       # Install a handler for this command that will evaluate it's action block when called.
       command_regex, command_action = command[:action]
-      install_handler.call /^#{prefix}#{command_regex}$/ do |message|
-        matches = message.body.match(/^#{prefix}#{command_regex}$/)
+        install_handler.call /\A#{prefix}#{command_regex}\Z/ do |message|
+        matches = message.body.match(/\A#{prefix}#{command_regex}\Z/)
         parameters = Hash[(matches.names.map(&:to_sym).zip(matches.captures))]
         instance_exec(message, parameters, &command_action)
       end
 
       # Install a handler to send a help/usage message when called.
       usage_regex, usage_message = command[:usage]
-      install_handler.call /^#{prefix}#{usage_regex}$/ do |message|
-        respond_to(message, usage_message)
+        install_handler.call /\A#{prefix}#{usage_regex}\Z/ do |message|
+        respond(message, usage_message)
       end
 
       # Install a handler to send a descriptive message when called. TODO: Maybe roll this into help/usage later.
       description_regex, description_message = command[:description]
-      install_handler.call /^#{prefix}#{description_regex}$/ do |message|
-        respond_to(message, description_message)
+        install_handler.call /\A#{prefix}#{description_regex}\Z/ do |message|
+        respond(message, description_message)
       end
     end
 
