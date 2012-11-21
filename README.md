@@ -25,7 +25,7 @@ Example
     command 'ping' do
       description 'Respond with a pong message to test.'
       action do |message, options|
-        respond_to message, 'pong'
+        respond message, 'pong'
       end
     end
 

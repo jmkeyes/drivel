@@ -8,7 +8,6 @@ setup 'DrivelBot', 'user@example.com', 'secretpassword'
 
 connected do
   status :available, 'At your service.'
-  join 'room', 'conference.example.com'
 end
 
 disconnected do
@@ -18,7 +17,7 @@ end
 command 'ping' do
   description 'Respond with a pong message to test.'
   action do |message, options|
-    respond_to message, "pong"
+    respond message, "pong"
   end
 end
 
