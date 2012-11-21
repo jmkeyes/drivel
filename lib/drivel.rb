@@ -45,8 +45,8 @@ module Drivel
     attr_reader :nickname
 
     # Convert a string into a JID, or return ours.
-    def jid(from = nil)
-      from ? ::Blather::JID.new(from) : client.jid
+    def jid(*from)
+      from.empty? ? client.jid : ::Blather::JID.new(*from)
     end
 
     # Give direct access to the Blather client.
@@ -102,10 +102,15 @@ module Drivel
     end
 
     # Signal to the server to join a given conference room.
-    def attend(room, server = nil)
+    def attend(conference)
       write_stanza(::Blather::Stanza::Presence::MUC) do |stanza|
-        conference = room + (server ? '' : '@' + server.to_s)
-        stanza.to = conference + '/' + nickname
+        stanza.to, stanza.type = jid(conference), nil
+      end
+    end
+
+    def leave(conference)
+      write__stanza(::Blather::Stanza::Presence::MUC) do |stanza|
+        stanza.to, stanza.type = jid(conference), :unavailable
       end
     end
 
