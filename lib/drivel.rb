@@ -165,8 +165,18 @@ module Drivel
     def register(*plugins, &block)
       # Turn an anonymous block into a plugin definition.
       plugins << Module.new(&block) if block_given?
-      # Register any defined plugins by extending this instance with their methods and calling #register on them.
-      plugins.each { |plugin| extend(plugin); plugin.register(self) if plugin.respond_to?(:register) }
+
+      # Register defined plugins and call #register on them if needed.
+      plugins.each do |plugin|
+        # Skip anything that isn't a module.
+        next unless plugin.is_a?(Module)
+
+        # Call the plugin registration function if it was defined.
+        plugin.register(self) if plugin.respond_to?(:register)
+
+        # Use the plugin.
+        self.extend(plugin)
+      end
     end
 
     # Run the configured bot now.
