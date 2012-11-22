@@ -96,14 +96,16 @@ module Drivel
 
     # Signal to the server to join a given conference room.
     def attend(conference)
+      room = jid(conference)
       write_stanza(::Blather::Stanza::Presence::MUC) do |stanza|
-        stanza.to, stanza.type = jid(conference), nil
+        stanza.to, stanza.type = jid(room.node, room.domain, nickname), nil
       end
     end
 
     def leave(conference)
-      write__stanza(::Blather::Stanza::Presence::MUC) do |stanza|
-        stanza.to, stanza.type = jid(conference), :unavailable
+      room = jid(conference)
+      write_stanza(::Blather::Stanza::Presence::MUC) do |stanza|
+        stanza.to, stanza.type = jid(room.node, room.domain, nickname), :unavailable
       end
     end
 
