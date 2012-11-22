@@ -161,22 +161,12 @@ module Drivel
       handle(:message, :groupchat?, :body => pattern, &callback)
     end
 
-    # Register modules (or a given block as a module) to include additional functionality
+    # Register plugins (or a given block) as extra functionality.
     def register(*plugins, &block)
-      # Turn an anonymous block into a plugin definition.
-      plugins << Module.new(&block) if block_given?
-
-      # Register defined plugins and call #register on them if needed.
-      plugins.each do |plugin|
-        # Skip anything that isn't a module.
-        next unless plugin.is_a?(Module)
-
-        # Call the plugin registration function if it was defined.
-        plugin.register(self) if plugin.respond_to?(:register)
-
-        # Use the plugin.
-        self.extend(plugin)
-      end
+      # Evaluate the block if it was given.
+      self.instance_eval(&block) if block_given?
+      # Load each plugin given.
+      plugins.each { |path| load path }
     end
 
     # Run the configured bot now.
