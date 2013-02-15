@@ -1,15 +1,23 @@
-Gem::Specification.new do |spec|
-  spec.name        = 'drivel'
-  spec.version     = '0.0.1'
+# -*- encoding: utf-8 -*-
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'drivel/version'
 
-  spec.authors     = ['Joshua Keyes']
-  spec.email       = 'joshua.michael.keyes@gmail.com'
+Gem::Specification.new do |gem|
+  gem.name          = "drivel"
+  gem.version       = Drivel::VERSION
 
-  spec.license     = 'MIT'
-  spec.summary     = %q{A DSL for building XMPP bots.}
-  spec.description = %q{An alternative DSL utilizing the excellent XMPP library, Blather, for creating interactive XMPP bots.}
+  gem.authors       = ["Joshua M. Keyes"]
+  gem.email         = ["joshua.michael.keyes@gmail.com"]
 
-  spec.files       = Dir['lib/**/*.rb', 'README.md']
+  gem.description   = %q{An alternative DSL utilizing the excellent XMPP library, Blather, for creating interactive XMPP bots.}
+  gem.summary       = %q{A DSL for building XMPP bots.}
+  gem.homepage      = "https://github.com/jmkeyes/drivel"
 
-  spec.add_dependency 'blather', '>= 0.8.0'
+  gem.files         = `git ls-files`.split($/)
+  gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
+  gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
+  gem.require_paths = ["lib"]
+
+  gem.add_dependency 'blather', '= 0.8.1'
 end
