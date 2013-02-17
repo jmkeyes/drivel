@@ -36,7 +36,7 @@ TBD.
 
     helpers do
       def authorized?(context)
-        context.chat and message.from == 'owner@example.com'
+        context.chat? and message.from == 'owner@example.com'
       end
     end
 
@@ -49,25 +49,25 @@ TBD.
     end
 
     subscription do |message|
-      # ???
+      # Handle subscription messages like Blather would.
     end
 
     command 'ping' do |message|
-      reply 'pong', to: message
+      respond message, 'pong'
     end
 
-    command 'join :conference' do |message, conference|
-      reply "I'm afraid I can't do that.", to: message and halt unless authorized?
-      join conference
+    command 'join :conference' do |message, params|
+      respond message, "I'm afraid I can't do that." and halt unless authorized?(message)
+      join params[:conference]
     end
 
-    command 'leave :conference' do |message, conference|
-      reply "I'm afraid I can't do that.", to: message and halt unless authorized?
-      leave conference
+    command 'leave :conference' do |message, params|
+      respond message, "I'm afraid I can't do that." and halt unless authorized?(message)
+      leave params[:conference]
     end
 
-    recognize 'What is love?', in: 'offtopic' do |message|
-      reply "Baby don't hurt me no more.", to: message
+    recognize 'What is love?' do |message|
+      respond message, "Baby don't hurt me no more."
     end
 
 ## Contributing
