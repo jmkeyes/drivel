@@ -59,7 +59,7 @@ module Drivel
     def recognize(pattern, *arguments, &block)
       raise InvalidArgumentError unless pattern.is_a?(String) or pattern.is_a?(Regexp)
 
-      matcher = Regexp.compile(pattern, true)
+      matcher = Regexp.compile(pattern, Regexp::IGNORECASE)
 
       handle(:message, :body => matcher) do |message|
         matches  = message.body.match(matcher)
