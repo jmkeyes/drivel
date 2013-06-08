@@ -120,13 +120,17 @@ module Drivel
       EM.next_tick { client.write(response) }
     end
 
-    def join(conference, &block)
+    def join(conference, password = nil, &block)
       room    = ::Blather::JID.new(conference)
       request = ::Blather::Stanza::Presence::MUC.new.tap do |stanza|
         target = ::Blather::JID.new(room.node, room.domain, settings[:nickname])
         stanza.to, stanza.type = target, nil
+
+        if password.is_a?(String)
+          stana.muc.children = XMPPNode.new('password').tap { |node| node.content = password }
+        end
       end
-      client.write_with_handler(request)
+      client.write_with_handler(request, &block)
     end
 
     def leave(conference, &block)
