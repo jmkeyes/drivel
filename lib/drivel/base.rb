@@ -127,7 +127,7 @@ module Drivel
         stanza.to, stanza.type = target, nil
 
         if password.is_a?(String)
-          stanza.muc.children = XMPPNode.new('password').tap { |node| node.content = password }
+          stanza.muc.children = Blather::XMPPNode.new('password').tap { |node| node.content = password }
         end
       end
       client.write_with_handler(request, &block)
